@@ -21,3 +21,6 @@ Este é um projeto de console desenvolvido em Python como parte de um desafio pa
     ```bash
     python nome_do_seu_arquivo.py
     ```
+### Projeto ainda não está em andamento. Tô treinando :-)
+
+**Pasta Training**
