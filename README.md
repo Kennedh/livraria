@@ -21,6 +21,5 @@ Este é um projeto de console desenvolvido em Python como parte de um desafio pa
     ```bash
     python nome_do_seu_arquivo.py
     ```
-### Projeto ainda não está em andamento. Tô treinando :-)
+### Apesar do projeto ser voltado para livros, dá para adaptar para outros produtos apenas herdando a classe Produto
 
-**Pasta Training**
