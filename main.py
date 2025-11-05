@@ -74,6 +74,10 @@ class Estoque:
             print(f"Retirado {qt} unidades do estoque do {livro1}\n\n"
                   f"Novo saldo: {self.estoque[produto]}")
 
+    def estoque_completo(self):
+        for produto, qt in self.estoque.items():
+            print(f"Produto: {produto} Saldo: {qt}")
+
 # Teste
 
 autor1 = Autor("Machado de Assis")
@@ -88,3 +92,5 @@ estoque.adicionar_estoque(livro1, 45)
 
 estoque.verificar_disponibilidade(livro1)
 estoque.diminuir_estoque(livro1, 20)
+
+estoque.estoque_completo()
