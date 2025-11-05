@@ -43,4 +43,7 @@ class Estoque:
         if obj_livro not in self.estoque:
             self.estoque[obj_livro] = qt
             print(f"Livro {obj_livro} adicionado ao estoque.")
+        else:
+            self.estoque[obj_livro] += qt
+            print(f"Adicionado mais {qt} ao {obj_livro} no estoque.")
 
