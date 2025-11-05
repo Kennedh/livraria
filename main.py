@@ -29,10 +29,13 @@ class Livro(Produto):
         self.isbn = isbn # ISBN-10
 
     # Para retornar valor sobre o objeto no print()
-    def __str__(self):
-        return (f"SKU: {self.sku} Titulo: {self.titulo} \nPreço de Venda: R$ {self.preco_venda} Preço de Custo: R$ {self.custo}\n"
+    def detalhes(self):
+         print(f"SKU: {self.sku} Titulo: {self.titulo} \nPreço de Venda: R$ {self.preco_venda} Preço de Custo: R$ {self.custo}\n"
                 f"Autor: {self.autor}\n"
                 f"ISBN-10: {self.isbn}")
+
+    def __str__(self):
+        return self.titulo
 
     # Comparação entre livros, quando nome e autor for igual
     def __eq__(self, other):
@@ -67,11 +70,21 @@ class Estoque:
         if qt > self.estoque[produto]:
             print("Saldo em estoque inferior ao solicitado.")
         else:
-            self.estoque -= qt
+            self.estoque[livro1] -= qt
+            print(f"Retirado {qt} unidades do estoque do {livro1}\n\n"
+                  f"Novo saldo: {self.estoque[produto]}")
 
 # Teste
 
 autor1 = Autor("Machado de Assis")
 livro1 = Livro("001","Dom Casmurro", 80.0, 65, autor1, "859431860X")
 
-print(livro1)
+livro1.detalhes()
+
+estoque = Estoque()
+
+estoque.adicionar_estoque(livro1, 20)
+estoque.adicionar_estoque(livro1, 45)
+
+estoque.verificar_disponibilidade(livro1)
+estoque.diminuir_estoque(livro1, 20)
