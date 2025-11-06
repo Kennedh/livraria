@@ -1,3 +1,5 @@
+from datetime import datetime
+
 class Produto:
     def __init__(self, sku, titulo, preco_venda, custo):
         self.sku = sku
@@ -78,6 +80,29 @@ class Estoque:
         for produto, qt in self.estoque.items():
             print(f"Produto: {produto} Saldo: {qt}")
 
+class Cliente:
+    _contador_id = 0
+
+    def __init__(self, nome):
+        self.nome = nome
+
+        # Auto incrementação de ID de modo basico
+        Cliente._contador_id += 1
+        self.id_cliente = Cliente._contador_id
+
+    def __str__(self):
+        return f"ID: {self.id_cliente} Nome: {self.nome}"
+
+class Venda:
+    def __init__(self, cliente, carrinho):
+        self.cliente = cliente
+        self.carrinho = carrinho
+
+        self.total_venda = 0
+        self.lucro_total = 0
+        self.hora_venda  = datetime.now()
+
+
 # Teste
 
 autor1 = Autor("Machado de Assis")
@@ -94,3 +119,9 @@ estoque.verificar_disponibilidade(livro1)
 estoque.diminuir_estoque(livro1, 20)
 
 estoque.estoque_completo()
+
+c1 = Cliente("Kennedh")
+c2 = Cliente("Renan")
+
+print(c1)
+print(c2)
