@@ -68,14 +68,7 @@ class Estoque:
             print(f"Saldo atual: {self.estoque[produto]}")
 
     def diminuir_estoque(self, produto, qt):
-        if produto not in self.estoque:
-            print("Produto não cadastrado")
-        if qt > self.estoque[produto]:
-            print("Saldo em estoque inferior ao solicitado.")
-        else:
-            self.estoque[livro1] -= qt
-            print(f"Retirado {qt} unidades do estoque do {livro1}\n\n"
-                  f"Novo saldo: {self.estoque[produto]}")
+        self.estoque[produto] -= qt
 
     def estoque_completo(self):
         for produto, qt in self.estoque.items():
@@ -162,7 +155,6 @@ estoque.adicionar_estoque(livro1, 40)
 estoque.adicionar_estoque(livro2, 45)
 
 estoque.verificar_disponibilidade(livro1)
-estoque.diminuir_estoque(livro1, 20)
 
 estoque.estoque_completo()
 
