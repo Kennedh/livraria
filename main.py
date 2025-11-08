@@ -64,7 +64,8 @@ class Estoque:
     def verificar_disponibilidade(self, produto):
         if produto not in self.estoque:
             print("Produto não cadastrado")
-        print(f"Saldo atual: {self.estoque[produto]}")
+        else:
+            print(f"Saldo atual: {self.estoque[produto]}")
 
     def diminuir_estoque(self, produto, qt):
         if produto not in self.estoque:
@@ -101,7 +102,6 @@ class Estoque:
         for item, qt in carrinho.items():
             self.diminuir_estoque(item, qt)
 
-        # 3. Cria e retorna o "recibo"
         print("Venda concluída com sucesso!")
         return Venda(cliente, carrinho)
 
@@ -119,6 +119,9 @@ class Cliente:
         return f"ID: {self.id_cliente} Nome: {self.nome}"
 
 class Venda:
+    vendas = ""
+    total_vendas = 0
+    total_lucro = 0
     def __init__(self, cliente, carrinho):
         self.cliente = cliente
         self.carrinho = carrinho
@@ -127,9 +130,22 @@ class Venda:
         self.lucro_total = 0
         self.hora_venda  = datetime.now()
 
+        self.itens = ""
+
         for item, qt in self.carrinho.items():
             self.total_venda += item.preco_venda * qt
             self.lucro_total += (item.preco_venda * qt) - (item.custo * qt)
+            self.itens += f"Produto: {item} Quantidade: {qt}\n"
+
+        Venda.vendas += f"Cliente: {self.cliente} \nItens: {self.itens}Total: R$ {self.total_venda}\n\n"
+        Venda.total_vendas += self.total_venda
+        Venda.total_lucro += self.lucro_total
+
+    def relatorio(self):
+        print("===================Vendas Realizadas===================")
+        print(Venda.vendas)
+        print("===================FATURAMENTO===================")
+        print(f"Total Vendido: R$ {Venda.total_vendas} Lucro Total: R$ {Venda.total_lucro}")
 
 
 # Teste
@@ -157,5 +173,5 @@ print(c1)
 print(c2)
 
 venda1 = estoque.processar_venda(c1, {livro1:6, livro2:5})
-
-print(venda1.lucro_total)
+venda2 = estoque.processar_venda(c1, {livro1:8, livro2:10})
+venda1.relatorio()
