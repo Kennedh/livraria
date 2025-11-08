@@ -80,6 +80,31 @@ class Estoque:
         for produto, qt in self.estoque.items():
             print(f"Produto: {produto} Saldo: {qt}")
 
+    def processar_venda(self, cliente, carrinho):
+        print(f"\n--- Iniciando processamento da venda para {cliente.nome} ---")
+
+        try:
+            for item, qt in carrinho.items():
+                if item not in self.estoque:
+                    raise ValueError(f"Produto {item} não cadastrado.")
+                if qt > self.estoque[item]:
+                    raise ValueError(
+                        f"Estoque insuficiente para {item}. Pedido: {qt}, Disponível: {self.estoque[item]}")
+
+            print("Validação de estoque: OK.")
+
+        except ValueError as e:
+            print(f"Falha ao processar venda: {e}")
+            return None
+
+        print("Executando baixa no estoque...")
+        for item, qt in carrinho.items():
+            self.diminuir_estoque(item, qt)
+
+        # 3. Cria e retorna o "recibo"
+        print("Venda concluída com sucesso!")
+        return Venda(cliente, carrinho)
+
 class Cliente:
     _contador_id = 0
 
@@ -102,18 +127,23 @@ class Venda:
         self.lucro_total = 0
         self.hora_venda  = datetime.now()
 
+        for item, qt in self.carrinho.items():
+            self.total_venda += item.preco_venda * qt
+            self.lucro_total += (item.preco_venda * qt) - (item.custo * qt)
+
 
 # Teste
 
 autor1 = Autor("Machado de Assis")
 livro1 = Livro("001","Dom Casmurro", 80.0, 65, autor1, "859431860X")
+livro2 = Livro("001", "Quincas Borba", 79.50, 60, autor1, "8594318855")
 
 livro1.detalhes()
 
 estoque = Estoque()
 
-estoque.adicionar_estoque(livro1, 20)
-estoque.adicionar_estoque(livro1, 45)
+estoque.adicionar_estoque(livro1, 40)
+estoque.adicionar_estoque(livro2, 45)
 
 estoque.verificar_disponibilidade(livro1)
 estoque.diminuir_estoque(livro1, 20)
@@ -125,3 +155,7 @@ c2 = Cliente("Renan")
 
 print(c1)
 print(c2)
+
+venda1 = estoque.processar_venda(c1, {livro1:6, livro2:5})
+
+print(venda1.lucro_total)
