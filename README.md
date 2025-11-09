@@ -19,7 +19,7 @@ Este é um projeto de console desenvolvido em Python como parte de um desafio pa
 2.  Clone ou baixe os arquivos do projeto.
 3.  Execute o arquivo principal pelo terminal:
     ```bash
-    python nome_do_seu_arquivo.py
+    python main.py
     ```
 ### Apesar do projeto ser voltado para livros, dá para adaptar para outros produtos apenas herdando a classe Produto
 
