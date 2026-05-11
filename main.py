@@ -1,169 +1,94 @@
-from datetime import datetime
+from models.autor import Autor
+from models.livro import Livro
+from models.cliente import Cliente
+from services.estoque_service import EstoqueService
+from services.venda_service import VendaService
+from reports.gerador_relatorios import GeradorRelatorios
 
-class Produto:
-    def __init__(self, sku, titulo, preco_venda, custo):
-        self.sku = sku
-        self.titulo = titulo
-        self.preco_venda = preco_venda
-        self.custo = custo
+def main():
+    print("=" * 60)
+    print("SISTEMA DE GESTÃO DE LIVRARIA".center(60))
+    print("=" * 60)
 
-class Autor:
-    def __init__(self, nome):
-        self.nome = nome
+    # Inicialização dos serviços
+    estoque_service = EstoqueService()
+    venda_service = VendaService(estoque_service)
+    relatorios = GeradorRelatorios(estoque_service, venda_service)
 
-    def __str__(self):
-        return self.nome
+    try:
+        # Cadastro de autores
+        print("\n>>> Cadastrando autores...")
+        autor1 = Autor("Machado de Assis")
+        autor2 = Autor("Clarice Lispector")
+        
+        # Cadastro de livros
+        print(">>> Cadastrando livros...")
+        livros = [
+            Livro("LIV001", "Dom Casmurro", 80.0, 65.0, autor1, "859431860X"),
+            Livro("LIV002", "Quincas Borba", 79.50, 60.0, autor1, "8594318855"),
+            Livro("LIV003", "A Hora da Estrela", 45.0, 30.0, autor2, "8532501012"),
+            Livro("LIV004", "Memórias Póstumas", 65.0, 45.0, autor1, "8532501013"),
+        ]
+        
+        # Exibe detalhes dos livros
+        for livro in livros:
+            print(f"\n{livro.detalhes()}")
+            print("-" * 40)
 
-    # Diferenciação entre autores
-    def __eq__(self, other):
-        if isinstance(other, Autor):
-            return self.nome == other.nome
-        return False
+        # Adiciona ao estoque
+        print("\n>>> Abastecendo estoque...")
+        quantidades_iniciais = [40, 45, 30, 35]
+        for livro, qtd in zip(livros, quantidades_iniciais):
+            estoque_service.adicionar_produto(livro, qtd)
+            print(f"✓ {livro.titulo}: {qtd} unidades")
 
-    #Implementação para estoque
-    def __hash__(self):
-        return hash(self.nome)
+        # Cadastro de clientes
+        print("\n>>> Cadastrando clientes...")
+        clientes = [
+            Cliente("Kennedh", "kennedh@email.com"),
+            Cliente("Renan", "renan@email.com"),
+        ]
+        
+        for cliente in clientes:
+            print(f"✓ {cliente}")
 
-class Livro(Produto):
-    def __init__(self, sku, titulo, preco_venda, custo, autor, isbn):
-        super().__init__(sku, titulo, preco_venda, custo)
-        self.autor = autor
-        self.isbn = isbn # ISBN-10
+        # Processamento de vendas
+        print("\n>>> Processando vendas...")
+        
+        # Venda 1
+        carrinho1 = {
+            livros[0]: 6,
+            livros[1]: 5
+        }
+        venda1 = venda_service.processar_venda(clientes[0], carrinho1)
+        print(f"✓ Venda #1 concluída - Total: R$ {venda1.total:.2f}")
+        
+        # Venda 2
+        carrinho2 = {
+            livros[0]: 8,
+            livros[1]: 10,
+            livros[2]: 3
+        }
+        venda2 = venda_service.processar_venda(clientes[1], carrinho2)
+        print(f"✓ Venda #2 concluída - Total: R$ {venda2.total:.2f}")
 
-    # Para retornar valor sobre o objeto no print()
-    def detalhes(self):
-         print(f"SKU: {self.sku} Titulo: {self.titulo} \nPreço de Venda: R$ {self.preco_venda} Preço de Custo: R$ {self.custo}\n"
-                f"Autor: {self.autor}\n"
-                f"ISBN-10: {self.isbn}")
-
-    def __str__(self):
-        return self.titulo
-
-    # Comparação entre livros, quando nome e autor for igual
-    def __eq__(self, other):
-        if isinstance(other, Livro):
-            return self.titulo == other.titulo and self.autor == other.autor
-        return False
-
-    # Para armazenar no estoque via dicionário
-    def __hash__(self):
-        return hash((self.titulo, self.autor))
-
-class Estoque:
-    def __init__(self):
-        self.estoque = {}
-
-    def adicionar_estoque(self, produto, qt):
-        if produto not in self.estoque:
-            self.estoque[produto] = qt
-            print(f"Livro {produto} cadastrado e adicionado {qt} ao estoque.")
-        else:
-            self.estoque[produto] += qt
-            print(f"Adicionado mais {qt} ao {produto} no estoque.")
-
-    def verificar_disponibilidade(self, produto):
-        if produto not in self.estoque:
-            print("Produto não cadastrado")
-        else:
-            print(f"Saldo atual: {self.estoque[produto]}")
-
-    def diminuir_estoque(self, produto, qt):
-        self.estoque[produto] -= qt
-
-    def estoque_completo(self):
-        for produto, qt in self.estoque.items():
-            print(f"Produto: {produto} Saldo: {qt}")
-
-    def processar_venda(self, cliente, carrinho):
-        print(f"\n--- Iniciando processamento da venda para {cliente.nome} ---")
-
+        # Tratamento de erro - tentativa de venda com estoque insuficiente
+        print("\n>>> Testando validação de estoque...")
         try:
-            for item, qt in carrinho.items():
-                if item not in self.estoque:
-                    raise ValueError(f"Produto {item} não cadastrado.")
-                if qt > self.estoque[item]:
-                    raise ValueError(
-                        f"Estoque insuficiente para {item}. Pedido: {qt}, Disponível: {self.estoque[item]}")
+            carrinho3 = {livros[0]: 100}  # Quantidade maior que disponível
+            venda_service.processar_venda(clientes[0], carrinho3)
+        except Exception as e:
+            print(f"✗ Erro esperado: {e}")
 
-            print("Validação de estoque: OK.")
+        # Geração de relatórios finais
+        print("\n")
+        relatorios.gerar_todos_relatorios()
 
-        except ValueError as e:
-            print(f"Falha ao processar venda: {e}")
-            return None
+    except Exception as e:
+        print(f"\n❌ Erro inesperado: {e}")
+        return 1
+    
+    return 0
 
-        print("Executando baixa no estoque...")
-        for item, qt in carrinho.items():
-            self.diminuir_estoque(item, qt)
-
-        print("Venda concluída com sucesso!")
-        return Venda(cliente, carrinho)
-
-class Cliente:
-    _contador_id = 0
-
-    def __init__(self, nome):
-        self.nome = nome
-
-        # Auto incrementação de ID de modo basico
-        Cliente._contador_id += 1
-        self.id_cliente = Cliente._contador_id
-
-    def __str__(self):
-        return f"ID: {self.id_cliente} Nome: {self.nome}"
-
-class Venda:
-    vendas = ""
-    total_vendas = 0
-    total_lucro = 0
-    def __init__(self, cliente, carrinho):
-        self.cliente = cliente
-        self.carrinho = carrinho
-
-        self.total_venda = 0
-        self.lucro_total = 0
-        self.hora_venda  = datetime.now()
-
-        self.itens = ""
-
-        for item, qt in self.carrinho.items():
-            self.total_venda += item.preco_venda * qt
-            self.lucro_total += (item.preco_venda * qt) - (item.custo * qt)
-            self.itens += f"Produto: {item} Quantidade: {qt}\n"
-
-        Venda.vendas += f"Cliente: {self.cliente} \nItens: {self.itens}Total: R$ {self.total_venda}\n\n"
-        Venda.total_vendas += self.total_venda
-        Venda.total_lucro += self.lucro_total
-
-    def relatorio(self):
-        print("===================Vendas Realizadas===================")
-        print(Venda.vendas)
-        print("===================FATURAMENTO===================")
-        print(f"Total Vendido: R$ {Venda.total_vendas} Lucro Total: R$ {Venda.total_lucro}")
-
-
-# Teste
-
-autor1 = Autor("Machado de Assis")
-livro1 = Livro("001","Dom Casmurro", 80.0, 65, autor1, "859431860X")
-livro2 = Livro("001", "Quincas Borba", 79.50, 60, autor1, "8594318855")
-
-livro1.detalhes()
-
-estoque = Estoque()
-
-estoque.adicionar_estoque(livro1, 40)
-estoque.adicionar_estoque(livro2, 45)
-
-estoque.verificar_disponibilidade(livro1)
-
-estoque.estoque_completo()
-
-c1 = Cliente("Kennedh")
-c2 = Cliente("Renan")
-
-print(c1)
-print(c2)
-
-venda1 = estoque.processar_venda(c1, {livro1:6, livro2:5})
-venda2 = estoque.processar_venda(c1, {livro1:8, livro2:10})
-venda1.relatorio()
+if __name__ == "__main__":
+    exit(main())
