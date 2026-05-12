@@ -1,0 +1,7 @@
+# JSON files
+*.json text
+
+# pastas
+
+.venv
+.idea
