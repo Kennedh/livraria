@@ -1,9 +1,5 @@
 # 📚 Sistema de Gestão de Livraria
 
-![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)
-![License](https://img.shields.io/badge/license-MIT-green.svg)
-![Status](https://img.shields.io/badge/status-em%20desenvolvimento-yellow.svg)
-
 Sistema de console desenvolvido em Python para gestão completa de uma livraria, utilizando Programação Orientada a Objetos (POO). O sistema oferece controle de estoque, registro de vendas, gestão de clientes e geração de relatórios financeiros detalhados.
 
 ## ✨ Funcionalidades
