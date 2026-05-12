@@ -6,23 +6,6 @@
 
 Sistema de console desenvolvido em Python para gestão completa de uma livraria, utilizando Programação Orientada a Objetos (POO). O sistema oferece controle de estoque, registro de vendas, gestão de clientes e geração de relatórios financeiros detalhados.
 
-## 📑 Índice
-
-- [Funcionalidades](#-funcionalidades)
-- [Estrutura do Projeto](#-estrutura-do-projeto)
-- [Diagrama de Classes](#-diagrama-de-classes)
-- [Pré-requisitos](#-pré-requisitos)
-- [Instalação e Execução](#-instalação-e-execução)
-- [Como Usar](#-como-usar)
-- [Exemplos de Código](#-exemplos-de-código)
-- [Testes](#-testes)
-- [Extensibilidade](#-extensibilidade)
-- [Boas Práticas Implementadas](#-boas-práticas-implementadas)
-- [Possíveis Melhorias Futuras](#-possíveis-melhorias-futuras)
-- [Contribuição](#-contribuição)
-- [Licença](#-licença)
-- [Contato](#-contato)
-
 ## ✨ Funcionalidades
 
 ### 📦 Gestão de Produtos
