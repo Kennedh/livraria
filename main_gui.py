@@ -110,8 +110,14 @@ class LivrariaGUI:
         self.entry_custo = ttk.Entry(frame_cadastro, width=15)
         self.entry_custo.grid(row=2, column=3, padx=5, pady=2)
 
-        ttk.Button(frame_cadastro, text="Cadastrar Livro",
-                   command=self.cadastrar_livro).grid(row=3, column=0, columnspan=4, pady=10)
+        frame_botoes = ttk.Frame(frame_cadastro)
+        frame_botoes.grid(row=3, column=0, columnspan=4, pady=10)
+
+        ttk.Button(frame_botoes, text="Cadastrar Livro",
+                   command=self.cadastrar_livro).pack(side='left', padx=5)
+
+        ttk.Button(frame_botoes, text="Excluir Livro",
+                   command=self.excluir_livro).pack(side='left', padx=5)
 
         # Frame para listagem
         frame_lista = ttk.LabelFrame(self.tab_livros, text="Livros Cadastrados", padding=10)
@@ -661,6 +667,155 @@ class LivrariaGUI:
             messagebox.showinfo("Backup", f"✅ Backup criado: {resultado}")
         else:
             messagebox.showerror("Erro", f"❌ Erro ao criar backup: {resultado}")
+
+    def excluir_livro(self):
+        """Exclui um livro que não tenha estoque"""
+
+        # Verificar se existem livros cadastrados
+        if not self.livros:
+            messagebox.showwarning("Aviso", "📭 Nenhum livro cadastrado!")
+            return
+
+        # Criar janela de confirmação
+        janela = tk.Toplevel(self.root)
+        janela.title("Excluir Livro")
+        janela.geometry("500x300")
+
+        ttk.Label(janela, text="Selecione o livro para excluir:",
+                  font=('Arial', 10)).pack(pady=10)
+
+        # Mostrar apenas livros que podem ser excluídos (estoque = 0)
+        ttk.Label(janela, text="📋 Livros sem estoque (disponíveis para exclusão):",
+                  font=('Arial', 9, 'bold')).pack(pady=5)
+
+        # Frame para lista
+        frame_lista = ttk.Frame(janela)
+        frame_lista.pack(fill='both', expand=True, padx=20, pady=10)
+
+        # Treeview para mostrar livros
+        tree = ttk.Treeview(frame_lista,
+                            columns=('Título', 'Autor', 'SKU', 'Estoque', 'Status'),
+                            show='headings',
+                            height=8)
+
+        tree.heading('Título', text='Título')
+        tree.heading('Autor', text='Autor')
+        tree.heading('SKU', text='SKU')
+        tree.heading('Estoque', text='Estoque')
+        tree.heading('Status', text='Status')
+
+        tree.column('Título', width=200)
+        tree.column('Autor', width=150)
+        tree.column('SKU', width=80)
+        tree.column('Estoque', width=80)
+        tree.column('Status', width=100)
+
+        tree.pack(fill='both', expand=True)
+
+        # Scrollbar
+        scrollbar = ttk.Scrollbar(frame_lista, orient='vertical', command=tree.yview)
+        scrollbar.pack(side='right', fill='y')
+        tree.configure(yscrollcommand=scrollbar.set)
+
+        # Preencher lista com todos os livros
+        livros_excluiveis = []
+        livros_bloqueados = []
+
+        for livro in self.livros:
+            try:
+                qtd = self.estoque_service.verificar_disponibilidade(livro)
+            except:
+                qtd = 0
+
+            if qtd == 0:
+                # Pode ser excluído
+                status = "✅ Disponível"
+                livros_excluiveis.append(livro)
+                tree.insert('', 'end', values=(
+                    livro.titulo, str(livro.autor), livro.sku, qtd, status
+                ), tags=('disponivel',))
+            else:
+                # Não pode ser excluído
+                status = "❌ Bloqueado"
+                livros_bloqueados.append(livro)
+                tree.insert('', 'end', values=(
+                    livro.titulo, str(livro.autor), livro.sku, qtd, status
+                ), tags=('bloqueado',))
+
+        # Configurar cores
+        tree.tag_configure('disponivel', background='#e8f5e8')  # Verde claro
+        tree.tag_configure('bloqueado', background='#ffe8e8')  # Vermelho claro
+
+        # Frame para botões
+        frame_botoes = ttk.Frame(janela)
+        frame_botoes.pack(pady=10)
+
+        def confirmar_exclusao():
+            """Confirma e executa a exclusão"""
+            selecionado = tree.selection()
+
+            if not selecionado:
+                messagebox.showwarning("Aviso", "Selecione um livro para excluir!")
+                return
+
+            # Pegar o índice do item selecionado
+            item = tree.item(selecionado[0])
+            titulo = item['values'][0]
+
+            # Encontrar o livro pelo título
+            livro_encontrado = None
+            for livro in self.livros:
+                if livro.titulo == titulo:
+                    livro_encontrado = livro
+                    break
+
+            if not livro_encontrado:
+                messagebox.showerror("Erro", "Livro não encontrado!")
+                return
+
+            # Verificar estoque (dupla verificação)
+            try:
+                qtd = self.estoque_service.verificar_disponibilidade(livro_encontrado)
+                if qtd > 0:
+                    messagebox.showerror("Erro",
+                                         f"❌ Não é possível excluir '{titulo}'!\n"
+                                         f"Motivo: Ainda existem {qtd} unidades em estoque.\n"
+                                         f"Remova todo o estoque primeiro.")
+                    return
+            except:
+                pass  # Se der erro ao verificar, é porque não está no estoque
+
+            # Confirmação final
+            confirmar = messagebox.askyesno(
+                "Confirmar Exclusão",
+                f"⚠️ Tem certeza que deseja excluir permanentemente:\n\n"
+                f"📖 {titulo}\n"
+                f"✍️ {str(livro_encontrado.autor)}\n"
+                f"🔖 SKU: {livro_encontrado.sku}\n\n"
+                f"Esta ação não pode ser desfeita!"
+            )
+
+            if confirmar:
+                # Remover o livro
+                self.livros.remove(livro_encontrado)
+
+                # Atualizar todas as listas
+                self.atualizar_todas_listas()
+
+                messagebox.showinfo("Sucesso", f"✅ Livro '{titulo}' excluído com sucesso!")
+                janela.destroy()
+
+        ttk.Button(frame_botoes, text="🗑️ Excluir Selecionado",
+                   command=confirmar_exclusao).pack(side='left', padx=5)
+
+        ttk.Button(frame_botoes, text="❌ Cancelar",
+                   command=janela.destroy).pack(side='left', padx=5)
+
+        # Label informativa
+        if livros_bloqueados:
+            ttk.Label(janela,
+                      text=f"⚠️ {len(livros_bloqueados)} livro(s) bloqueado(s) - possuem estoque",
+                      foreground='red').pack(pady=5)
 
 
 def main():
